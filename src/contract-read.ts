@@ -37,13 +37,15 @@ export async function readContract(
   });
   const fetchTxPromise = fetchTransactions(arweave, contractId, height).catch((err) => err);
 
-  let [contractInfo, txInfos] = await Promise.all([loadPromise, fetchTxPromise]);
+  const proms = await Promise.all([loadPromise, fetchTxPromise]);
+  let contractInfo = proms[0];
+  const txInfos = proms[1];
 
   if (contractInfo instanceof Error) throw contractInfo;
   if (txInfos instanceof Error) throw txInfos;
 
   let state: any;
-  let contractSrc: string = contractInfo.contractSrc;
+  const contractSrc: string = contractInfo.contractSrc;
   try {
     state = JSON.parse(contractInfo.initState);
   } catch (e) {
@@ -54,7 +56,8 @@ export async function readContract(
 
   await sortTransactions(arweave, txInfos);
 
-  let { handler, swGlobal } = contractInfo;
+  let { handler } = contractInfo;
+  const { swGlobal } = contractInfo;
 
   const validity: Record<string, boolean> = {};
 
